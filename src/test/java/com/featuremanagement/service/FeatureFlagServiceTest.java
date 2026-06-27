@@ -44,6 +44,7 @@ class FeatureFlagServiceTest {
         assertEquals(request.name(), created.getName());
         assertFalse(created.isDefaultState());
         assertEquals(1, created.getRules().size());
+        
 
         FeatureFlag persisted = featureFlagRepository.findByName(request.name()).orElseThrow();
         assertEquals(request.name(), persisted.getName());
