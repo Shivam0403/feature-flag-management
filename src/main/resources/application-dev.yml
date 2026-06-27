@@ -1,0 +1,11 @@
+# Local development profile (run with: mvn spring-boot:run -Dspring-boot.run.profiles=dev)
+spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+
+logging:
+  level:
+    com.featuremanagement: DEBUG
+    org.hibernate.SQL: DEBUG

@@ -1,0 +1,18 @@
+# Production profile (run with: java -jar app.jar --spring.profiles.active=prod)
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:h2:mem:featuredb;DB_CLOSE_DELAY=-1}
+    username: ${DATABASE_USERNAME:sa}
+    password: ${DATABASE_PASSWORD:}
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+
+logging:
+  level:
+    root: WARN
+    com.featuremanagement: INFO
+
+server:
+  port: ${PORT:8080}
