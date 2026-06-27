@@ -106,6 +106,88 @@ Content-Type: application/json
 }
 ```
 
+## Database Schema
+
+Rules are **not** stored as a column on `feature_flags`. Each flag has a one-to-many relationship with rows in a separate `feature_flag_rules` table, linked by `feature_flag_id`.
+
+### `feature_flags`
+
+| id | name | default_state |
+|----|------|---------------|
+| 1 | checkout-redesign | false |
+
+### `feature_flag_rules`
+
+| Column | Description |
+|--------|-------------|
+| `feature_flag_id` | Foreign key to `feature_flags.id` |
+| `attribute` | Context field: `USER_ID`, `SUBSCRIPTION_TIER`, or `REGION` |
+| `operator` | Rule type: `IN`, `EQUALS`, `NOT_IN`, `PERCENTAGE_ROLLOUT`, etc. |
+| `rule_values` | Comma-separated match values (from the API `values` array) |
+| `state` | Flag state when this rule matches (`true` = ON, `false` = OFF) |
+| `priority` | Evaluation order (lower number = evaluated first) |
+| `percentage_rollout` | Rollout percentage (only used for `PERCENTAGE_ROLLOUT` rules) |
+
+### Example: context-based rule
+
+API request:
+
+```json
+{
+  "attribute": "region",
+  "operator": "IN",
+  "values": ["us", "ca"],
+  "state": true,
+  "priority": 1
+}
+```
+
+Stored row in `feature_flag_rules`:
+
+| id | feature_flag_id | attribute | operator | rule_values | state | priority | percentage_rollout |
+|----|-----------------|-----------|----------|-------------|-------|----------|-------------------|
+| 1 | 1 | REGION | IN | us,ca | true | 1 | null |
+
+The API `values` array `["us", "ca"]` is persisted as the comma-separated string `us,ca` in `rule_values`.
+
+### Example: percentage rollout rule
+
+API request:
+
+```json
+{
+  "operator": "PERCENTAGE_ROLLOUT",
+  "percentageRollout": 30,
+  "state": true,
+  "priority": 0
+}
+```
+
+Stored row in `feature_flag_rules`:
+
+| id | feature_flag_id | attribute | operator | rule_values | state | priority | percentage_rollout |
+|----|-----------------|-----------|----------|-------------|-------|----------|-------------------|
+| 2 | 1 | USER_ID | PERCENTAGE_ROLLOUT | | true | 0 | 30 |
+
+For rollout rules, the percentage is stored in `percentage_rollout`; `rule_values` is empty.
+
+### Full example after creating `checkout-redesign`
+
+After the create-flag request in the examples above, the database would contain:
+
+**`feature_flags`**
+
+| id | name | default_state |
+|----|------|---------------|
+| 1 | checkout-redesign | false |
+
+**`feature_flag_rules`**
+
+| id | feature_flag_id | attribute | operator | rule_values | state | priority | percentage_rollout |
+|----|-----------------|-----------|----------|-------------|-------|----------|-------------------|
+| 1 | 1 | REGION | IN | us,ca | true | 1 | null |
+| 2 | 1 | SUBSCRIPTION_TIER | IN | pro | true | 2 | null |
+
 ## Test
 
     mvn test
