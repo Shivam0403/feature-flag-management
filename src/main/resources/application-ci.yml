@@ -1,0 +1,5 @@
+# CI profile — used by GitHub Actions (and local: mvn test -Dspring.profiles.active=ci)
+logging:
+  level:
+    root: WARN
+    com.featuremanagement: INFO
