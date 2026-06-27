@@ -177,7 +177,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[Client: POST /api/flags/{name}/evaluate] --> B[Controller: Parse User Context]
+    A[Client: POST /api/flags/name/evaluate] --> B[Controller: Parse User Context]
     B --> C[Service: Evaluate Flag]
     C --> D[Service: Check Cache]
     D --> E{Flag in Cache?}
