@@ -68,7 +68,9 @@ jobs:
         run: |
           JAR=$(ls deploy/feature-management-*.jar)
           echo "Starting production deployment with $JAR"
-          java -jar "$JAR" --spring.profiles.active=prod &
+          java -jar "$JAR" \
+            --spring.profiles.active=prod \
+            --spring.jpa.hibernate.ddl-auto=update &
           APP_PID=$!
 
           for i in $(seq 1 30); do
