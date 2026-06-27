@@ -8,10 +8,10 @@ import com.featuremanagement.entity.FeatureFlagRule;
 import com.featuremanagement.enums.RuleAttribute;
 import com.featuremanagement.enums.RuleOperator;
 import com.featuremanagement.repository.FeatureFlagRepository;
+import com.featuremanagement.rule.RuleEvaluation;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,10 +19,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class FeatureFlagService {
     private final FeatureFlagRepository repository;
+    private final RuleEvaluation ruleEvaluation;
     private final Map<String, FeatureFlag> cache = new ConcurrentHashMap<>();
 
-    public FeatureFlagService(FeatureFlagRepository repository) {
+    public FeatureFlagService(FeatureFlagRepository repository, RuleEvaluation ruleEvaluation) {
         this.repository = repository;
+        this.ruleEvaluation = ruleEvaluation;
     }
 
     @Transactional
@@ -61,22 +63,13 @@ public class FeatureFlagService {
 
     public FeatureFlagEvaluationResponse evaluateFlag(String name, UserContext userContext) {
         FeatureFlag flag = cache.computeIfAbsent(name, this::loadFlagByName);
-        boolean enabled = evaluate(flag, userContext);
+        boolean enabled = ruleEvaluation.evaluateFlag(flag, userContext);
         return new FeatureFlagEvaluationResponse(flag.getName(), enabled, enabled ? "ON" : "OFF");
     }
 
     private FeatureFlag loadFlagByName(String name) {
         return repository.findByName(name)
                 .orElseThrow(() -> new IllegalArgumentException("Feature flag not found: " + name));
-    }
-
-    private boolean evaluate(FeatureFlag flag, UserContext userContext) {
-        return flag.getRules().stream()
-                .sorted(Comparator.comparingInt(FeatureFlagRule::getPriority))
-                .filter(rule -> rule.matches(userContext))
-                .findFirst()
-                .map(FeatureFlagRule::isState)
-                .orElse(flag.isDefaultState());
     }
 
     public List<FeatureFlag> listFlags() {

@@ -31,7 +31,8 @@ public enum RuleOperator {
             case NOT_EQUALS -> values.isEmpty() || !values.get(0).equals(normalized);
             case IN -> values.contains(normalized);
             case NOT_IN -> !values.contains(normalized);
-            case PERCENTAGE_ROLLOUT -> throw new UnsupportedOperationException("Use matchesPercentageRollout instead");
+            case PERCENTAGE_ROLLOUT -> throw new UnsupportedOperationException(
+                    "Percentage rollout is handled by RuleEvaluation");
         };
     }
 }
